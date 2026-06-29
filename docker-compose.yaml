@@ -8,10 +8,8 @@ services:
     environment:
       - NODE_ENV=production
       - NEXT_TELEMETRY_DISABLED=1
-      # Add any other environment variables D2Foundry needs
-      # Check the project's .env.example or source code for required vars
-      # - NEXT_PUBLIC_API_URL=...
-      # - DATABASE_URL=... (if they use a database)
+      # REQUIRED: Get a Bungie API key at https://www.bungie.net/en/Application
+      - BUNGIE_API_KEY=${BUNGIE_API_KEY}
     # No volumes needed for stateless app, but if you want to persist build cache:
     # volumes:
     #   - ./data:/app/.next/cache # Optional: persist build cache
@@ -21,9 +19,9 @@ services:
       - "traefik.enable=true"
       - "traefik.docker.network=traefik-proxy"
       
-      - "traefik.http.routers.d2foundry.rule=Host(`d2foundry.timnnhomelab.me`)" # CHANGE THIS
+      - "traefik.http.routers.d2foundry.rule=Host(`d2foundry.timnnhomelab.me`)"
       - "traefik.http.routers.d2foundry.entrypoints=websecure"
-      - "traefik.http.routers.d2foundry.tls.certresolver=cloudflare" # Or your cert resolver
+      - "traefik.http.routers.d2foundry.tls.certresolver=cloudflare"
       - "traefik.http.services.d2foundry.loadbalancer.server.port=3000"
 
 networks:

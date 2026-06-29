@@ -1,0 +1,16 @@
+node_modules
+.next
+.turbo
+.contentlayer
+out
+build
+coverage
+.git
+.gitignore
+*.md
+.DS_Store
+*.log
+.env
+.env.local
+.env.*.local
+.vercel
