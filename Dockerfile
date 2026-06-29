@@ -32,6 +32,8 @@ RUN ls apps/web/content/ 2>/dev/null | head -5 || echo "No content files"
 RUN if [ ! -d "apps/web/node_modules/@foundry/search" ]; then \
     git clone https://github.com/d2foundry/search.git apps/web/node_modules/@foundry/search; \
     fi
+# Generate contentlayer source
+RUN npx contentlayer generate
 # Run Turborepo build
 
 # Stage 3: Production runner
@@ -46,7 +48,6 @@ COPY --from=builder /app/apps/web/public ./public
 COPY --from=builder /app/apps/web/.next ./.next
 COPY --from=builder /app/apps/web/node_modules ./node_modules
 COPY --from=builder /app/apps/web/package.json ./package.json
-COPY --from=builder /app/apps/web/contentlayer ./contentlayer
 COPY --from=builder /app/apps/web/content ./content
 COPY --from=builder /app/apps/web/next.config.js ./next.config.js
 
