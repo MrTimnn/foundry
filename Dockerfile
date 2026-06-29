@@ -22,11 +22,14 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/packages ./packages
 COPY . .
 
-# Run Turborepo build from root
-WORKDIR /app
-RUN echo "=== Node version ===" && node --version && \
-    echo "=== PNPM version ===" && pnpm --version && \
-    echo "=== Pnpm build ===" && pnpm build
+# Verify environment
+RUN pnpm --version && node --version
+# Check installed packages
+RUN ls apps/web/node_modules/@foundry/ 2>/dev/null || echo "No @foundry packages"
+# Check content files
+RUN ls apps/web/content/ 2>/dev/null | head -5 || echo "No content files"
+# Run Turborepo build
+RUN pnpm build
 
 # Stage 3: Production runner
 FROM node:18-alpine AS runner
