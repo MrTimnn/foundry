@@ -27,7 +27,7 @@ WORKDIR /app/apps/web
 RUN pnpm exec contentlayer --config contentlayer.config.ts
 
 # Build Next.js app
-RUN pnpm run build
+RUN pnpm exec next build
 
 # Stage 2: Production
 FROM node:18-alpine AS runner
