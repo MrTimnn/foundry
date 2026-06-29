@@ -28,8 +28,13 @@ RUN pnpm --version && node --version
 RUN ls apps/web/node_modules/@foundry/ 2>/dev/null || echo "No @foundry packages"
 # Check content files
 RUN ls apps/web/content/ 2>/dev/null | head -5 || echo "No content files"
-# Run Turborepo build
-RUN pnpm build
+# Run Turborepo build and always show output
+RUN pnpm build > /tmp/build_out.log 2>&1; exit_code=$?; \
+    cat /tmp/build_out.log; \
+    if [ $exit_code -ne 0 ]; then \
+        echo "=== BUILD FAILED WITH EXIT CODE $exit_code ==="; \
+        exit $exit_code; \
+    fi
 
 # Stage 3: Production runner
 FROM node:18-alpine AS runner
