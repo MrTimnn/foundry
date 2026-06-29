@@ -22,15 +22,11 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/packages ./packages
 COPY . .
 
-WORKDIR /app/apps/web
-
-# Build with Contentlayer + Next.js
-RUN pnpm build > /tmp/build.log 2>&1; \
-    exit_code=$?; \
-    if [ $exit_code -ne 0 ]; then \
-        cat /tmp/build.log; \
-        exit $exit_code; \
-    fi
+# Run Turborepo build from root
+WORKDIR /app
+RUN echo "=== Node version ===" && node --version && \
+    echo "=== PNPM version ===" && pnpm --version && \
+    echo "=== Pnpm build ===" && pnpm build
 
 # Stage 3: Production runner
 FROM node:18-alpine AS runner
