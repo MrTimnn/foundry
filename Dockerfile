@@ -33,7 +33,7 @@ RUN if [ ! -d "apps/web/node_modules/@foundry/search" ]; then \
     git clone https://github.com/d2foundry/search.git apps/web/node_modules/@foundry/search; \
     fi
 # Generate contentlayer source
-RUN npx contentlayer generate
+RUN npx contentlayer --config apps/web/contentlayer.config.ts
 # Run Turborepo build
 
 # Stage 3: Production runner
