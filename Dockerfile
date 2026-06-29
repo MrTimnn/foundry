@@ -24,13 +24,11 @@ COPY . .
 
 WORKDIR /app/apps/web
 
-# Build with Contentlayer + Next.js (capture full log)
-RUN pnpm build 2>&1 | tee /tmp/build.log; \
-    exit_code=${PIPESTATUS[0]}; \
+# Build with Contentlayer + Next.js
+RUN pnpm build > /tmp/build.log 2>&1; \
+    exit_code=$?; \
     if [ $exit_code -ne 0 ]; then \
-        echo "===== FULL BUILD LOG ====="; \
         cat /tmp/build.log; \
-        echo "===== BUILD FAILED (exit code $exit_code) ====="; \
         exit $exit_code; \
     fi
 
