@@ -19,9 +19,14 @@ WORKDIR /app
 RUN apk add --no-cache python3 make g++ git build-base && \
     npm install -g pnpm@8.15.6
 
-COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/packages ./packages
+# Copy all workspace files including root configuration
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
+COPY apps/web/package.json ./apps/web/
+COPY packages/ ./packages/
 COPY . .
+
+RUN npm install -g pnpm@8.15.6 && \
+    pnpm install --frozen-lockfile
 
 # Verify environment
 RUN pnpm --version && node --version
