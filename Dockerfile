@@ -1,27 +1,39 @@
-# Stage 1: Build the application
+# Stage 1: Build
 FROM node:18-alpine AS builder
 WORKDIR /app
 
-# Copy package files and install dependencies
-COPY package*.json pnpm-lock.yaml ./
-RUN npm install -g pnpm && pnpm install --frozen-lockfile
+# Install pnpm and build dependencies
+RUN npm install -g pnpm && \
+    apk add --no-cache python3 make g++
 
-# Copy the rest of the source code and build the app
-COPY . .
-RUN pnpm build
+# Copy package files for all workspaces
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY apps/ ./apps/
+COPY packages/ ./packages/
+COPY turbo.json ./
 
-# Stage 2: Run the application
+# Install dependencies for all workspaces
+RUN pnpm install --frozen-lockfile --filter=web
+
+# Build only the web app
+RUN pnpm build --filter=web
+
+# Stage 2: Production
 FROM node:18-alpine AS runner
 WORKDIR /app
 
-# Copy necessary files from the builder stage
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/package.json ./package.json
+# Copy built web app and its dependencies
+COPY --from=builder /app/apps/web/.next ./apps/web/.next
+COPY --from=builder /app/apps/web/public ./apps/web/public
+COPY --from=builder /app/apps/web/package.json ./apps/web/package.json
 COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/packages ./packages
 
-# Expose the port your app runs on (Next.js default is 3000)
+# Copy the workspace package.json
+COPY --from=builder /app/package.json ./package.json
+
+WORKDIR /app/apps/web
+
 EXPOSE 3000
 
-# Start the application
 CMD ["pnpm", "start"]
