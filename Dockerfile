@@ -20,7 +20,6 @@ RUN apk add --no-cache python3 make g++ git && \
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/packages ./packages
-COPY --from=deps /app/ui ./ui
 COPY . .
 
 WORKDIR /app/apps/web
