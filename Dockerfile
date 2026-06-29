@@ -7,7 +7,6 @@ RUN apk add --no-cache python3 make g++ git
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
 COPY apps/web/package.json ./apps/web/
 COPY packages/ ./packages/
-COPY ui/ ./ui/
 
 RUN npm install -g pnpm@8.15.6 && \
     pnpm install --frozen-lockfile
