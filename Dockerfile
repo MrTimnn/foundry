@@ -2,7 +2,7 @@
 FROM node:18-alpine AS deps
 WORKDIR /app
 
-RUN apk add --no-cache python3 make g++ git
+RUN apk add --no-cache python3 make g++ git build-base
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
 COPY apps/web/package.json ./apps/web/
@@ -15,12 +15,16 @@ RUN npm install -g pnpm@8.15.6 && \
 FROM node:18-alpine AS builder
 WORKDIR /app
 
-RUN apk add --no-cache python3 make g++ git && \
+RUN apk add --no-cache python3 make g++ git build-base && \
     npm install -g pnpm@8.15.6
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/packages ./packages
 COPY . .
+
+# Install additional native modules
+RUN npm install --ignore-scripts && \
+    npm rebuild better-sqlite3
 
 # Verify environment
 RUN pnpm --version && node --version
@@ -32,9 +36,8 @@ RUN ls apps/web/content/ 2>/dev/null | head -5 || echo "No content files"
 RUN if [ ! -d "apps/web/node_modules/@foundry/search" ]; then \
     git clone https://github.com/d2foundry/search.git apps/web/node_modules/@foundry/search; \
     fi
-# Generate contentlayer source
-RUN npx contentlayer --config apps/web/contentlayer.config.ts
-# Run Turborepo build
+# Build the project
+RUN pnpm build
 
 # Stage 3: Production runner
 FROM node:18-alpine AS runner
