@@ -28,11 +28,12 @@ RUN pnpm --version && node --version
 RUN ls apps/web/node_modules/@foundry/ 2>/dev/null || echo "No @foundry packages"
 # Check content files
 RUN ls apps/web/content/ 2>/dev/null | head -5 || echo "No content files"
-# Clone @foundry/search if not already cloned (pre-built git dependency)
+# Clone @foundry/search if not already cloned
 RUN if [ ! -d "apps/web/node_modules/@foundry/search" ]; then \
     git clone https://github.com/d2foundry/search.git apps/web/node_modules/@foundry/search; \
     fi
 # Run Turborepo build
+RUN pnpm build
 
 # Stage 3: Production runner
 FROM node:18-alpine AS runner
