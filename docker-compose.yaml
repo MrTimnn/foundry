@@ -1,0 +1,31 @@
+services:
+  d2foundry:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: d2foundry
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      # Add any other environment variables D2Foundry needs
+      # Check the project's .env.example or source code for required vars
+      # - NEXT_PUBLIC_API_URL=...
+      # - DATABASE_URL=... (if they use a database)
+    # No volumes needed for stateless app, but if you want to persist build cache:
+    # volumes:
+    #   - ./data:/app/.next/cache # Optional: persist build cache
+    networks:
+      - traefik-proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik-proxy"
+      
+      - "traefik.http.routers.d2foundry.rule=Host(`d2foundry.timnnhomelab.me`)" # CHANGE THIS
+      - "traefik.http.routers.d2foundry.entrypoints=websecure"
+      - "traefik.http.routers.d2foundry.tls.certresolver=cloudflare" # Or your cert resolver
+      - "traefik.http.services.d2foundry.loadbalancer.server.port=3000"
+
+networks:
+  traefik-proxy:
+    external: true
+    name: traefik-proxy
