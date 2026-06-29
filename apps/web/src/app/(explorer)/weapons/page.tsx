@@ -3,6 +3,8 @@ import { getDestinyWeapons } from "@/lib/database/queries/items";
 import { Metadata } from "next";
 import { explorerCategory } from "contentlayer/generated";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "weapons // FOUNDRY",
 };

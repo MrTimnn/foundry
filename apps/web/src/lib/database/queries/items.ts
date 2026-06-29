@@ -1,8 +1,9 @@
 "server only";
-import { db } from "@/lib/database";
+import { getDb } from "@/lib/database";
 import { inventoryItems } from "@/lib/database/schemas/schema";
 
 export const getDestinyInventoryItems = async () => {
+  const db = getDb();
   const res = await db.select().from(inventoryItems).limit(10);
   if (!res) {
     return [];
@@ -11,6 +12,7 @@ export const getDestinyInventoryItems = async () => {
 };
 
 export const getDestinyWeapons = async () => {
+  const db = getDb();
   const res = await db.select().from(inventoryItems);
   if (!res) {
     return [];
@@ -25,5 +27,5 @@ export const getDestinyWeapons = async () => {
 };
 
 export const getDestinyWeaponsByItemType = async () => {
-  const res = await getDestinyWeapons();
+  const weapons = await getDestinyWeapons();
 };
