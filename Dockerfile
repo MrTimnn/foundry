@@ -8,5 +8,9 @@ COPY . .
 
 RUN pnpm install --frozen-lockfile
 
-# Build everything without filter
+# Navigate to web app and build directly
+WORKDIR /app/apps/web
 RUN pnpm build
+
+# Back to root
+WORKDIR /app
