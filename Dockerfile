@@ -1,4 +1,30 @@
-# Stage 1: Build
+FROM node:18-alpine AS builder
+WORKDIR /app
+
+RUN apk add --no-cache python3 make g++ git && \
+    npm install -g pnpm@8.15.6
+
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY turbo.json ./
+COPY . .
+
+RUN pnpm install --frozen-lockfile
+
+# Try building with different output
+ENV NEXT_OUTPUT_STANDALONE=true
+RUN pnpm run build --filter=web
+
+FROM node:18-alpine
+RUN npm install -g pnpm@8.15.6
+
+WORKDIR /app
+
+COPY --from=builder /app/apps/web/.next/standalone ./
+COPY --from=builder /app/apps/web/public ./apps/web/public
+COPY --from=builder /app/apps/web/.next/static ./apps/web/.next/static
+
+EXPOSE 3000
+CMD ["node", "apps/web/server.js"]# Stage 1: Build
 FROM node:18-alpine AS builder
 WORKDIR /app
 
