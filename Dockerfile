@@ -2,7 +2,7 @@
 FROM node:18-alpine AS builder
 WORKDIR /app
 
-RUN apk add --no-cache python3 make g++ git build-base
+RUN apk add --no-cache python3 make g++ git
 
 # Copy only essential files
 COPY apps/web/package.json ./apps/web/
@@ -10,33 +10,28 @@ COPY pnpm-lock.yaml ./
 COPY packages/ ./packages/
 COPY . .
 
-# Install dependencies with optimized settings to avoid native compilation issues
-RUN echo "Installing dependencies..." && \
-    # Explicitly install search package first
-    if [ ! -d "apps/web/node_modules/@foundry/search" ]; then \
-        git clone --depth 1 https://github.com/d2foundry/search.git apps/web/node_modules/@foundry/search; \
-    fi && \
-    # Install remaining dependencies with optimized settings for Alpine
-    cd apps/web && \
-    NODE_OPTIONS="--max-old-space-size=4096" \
-    pnpm install --frozen-lockfile --prefer-offline --ignore-scripts && \
-    # Clear npm cache to reduce build size
-    rm -rf ~/.npm && rm -rf /root/.cache/pnpm
+# Install search package as it's a direct dependency
+RUN if [ ! -d "apps/web/node_modules/@foundry/search" ]; then \
+    cd apps/web && git clone --depth 1 https://github.com/d2foundry/search.git ./node_modules/@foundry/search; \
+    fi
+
+# Install all remaining dependencies
+RUN cd apps/web && pnpm install --frozen-lockfile
 
 # Generate contentlayer
 RUN cd apps/web && npx contentlayer --config contentlayer.config.ts
 
-# Build the Next.js app (using pnpm run build as specified in root package.json)
-RUN cd apps/web && pnpm run build
+# Build the Next.js app
+RUN cd apps/web && next build
 
-# Stage 3: Production runner
+# Stage 2: Production runner
 FROM node:18-alpine AS runner
 WORKDIR /app
 
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs
 
-# Copy standalone output or .next build
+# Copy runtime dependencies and built application
 COPY --from=builder /app/apps/web/public ./public
 COPY --from=builder /app/apps/web/.next ./.next
 COPY --from=builder /app/apps/web/node_modules ./node_modules
