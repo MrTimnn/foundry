@@ -44,12 +44,12 @@ ENV PORT=3000
 # Create the directory and copy it so the runtime user can create the file.
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next ./.next
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules /app/node_modules
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/package.json ./package.json
-COPY --from=builder --chown=nextjs:nodejs /app/apps/web/node_modules ./node_modules
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/src/lib/database ./src/lib/database
 
 USER nextjs
 
 EXPOSE 3000
 
-CMD ["./node_modules/.bin/next", "start", "-p", "3000"]
+CMD ["../../node_modules/.bin/next", "start", "-p", "3000"]
