@@ -31,24 +31,42 @@ RUN pnpm exec next build
 
 # Stage 2: Production
 FROM node:18-alpine AS runner
-WORKDIR /app/apps/web
+WORKDIR /app
 
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs
+
+RUN apk add --no-cache python3 make g++
+
+# Install pnpm and production dependencies in the runtime image so the
+# workspace links resolve the same way they do during the build.
+RUN npm install -g pnpm@8.6.10
+
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
+COPY apps/docs/package.json ./apps/docs/package.json
+COPY apps/web/package.json ./apps/web/package.json
+COPY packages/eslint-config-custom/package.json ./packages/eslint-config-custom/package.json
+COPY packages/oracle-engine/package.json ./packages/oracle-engine/package.json
+COPY packages/tsconfig/package.json ./packages/tsconfig/package.json
+COPY packages/ui/package.json ./packages/ui/package.json
+
+RUN pnpm install --frozen-lockfile --prod
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
 
-# Copy the built app and the workspace package store.
-COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next ./.next
-COPY --from=builder --chown=nextjs:nodejs /app/apps/web/public ./public
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules /app/node_modules
-COPY --from=builder --chown=nextjs:nodejs /app/apps/web/package.json ./package.json
-COPY --from=builder --chown=nextjs:nodejs /app/apps/web/src/lib/database ./src/lib/database
+# Copy the built app artifacts and runtime source needed by the server.
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next ./apps/web/.next
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/public ./apps/web/public
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/package.json ./apps/web/package.json
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/src ./apps/web/src
+COPY --from=builder --chown=nextjs:nodejs /app/packages ./packages
 
 USER nextjs
 
+WORKDIR /app/apps/web
+
 EXPOSE 3000
 
-CMD ["node", "/app/node_modules/.pnpm/next@13.5.3_@opentelemetry+api@1.6.0_react-dom@18.2.0_react@18.2.0/node_modules/next/dist/bin/next", "start", "-p", "3000"]
+CMD ["pnpm", "start", "-p", "3000"]
