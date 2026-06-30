@@ -9,6 +9,12 @@ let _db: BetterSQLite3Database | null = null;
 export function getDb(): BetterSQLite3Database {
   if (!_sqlite) {
     _sqlite = new Database("src/lib/database/sqlite.db");
+    _sqlite.exec(`
+      CREATE TABLE IF NOT EXISTS "DestinyInventoryItemDefinition" (
+        "id" integer PRIMARY KEY NOT NULL,
+        "json" text NOT NULL
+      )
+    `);
     _db = drizzle(_sqlite);
   }
   return _db!;
