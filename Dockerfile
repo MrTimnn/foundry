@@ -40,12 +40,13 @@ ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
 
-# Copy the built app and the workspace package store.
+# Copy the built app and the full workspace install so pnpm links resolve.
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules /app/node_modules
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next ./.next
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/public ./public
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules /app/node_modules
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/package.json ./package.json
-COPY --from=builder --chown=nextjs:nodejs /app/apps/web/src/lib/database ./src/lib/database
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/src ./src
+COPY --from=builder --chown=nextjs:nodejs /app/packages /app/packages
 
 USER nextjs
 
