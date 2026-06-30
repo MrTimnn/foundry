@@ -40,16 +40,14 @@ ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
 
-# The app opens a relative SQLite path at src/lib/database/sqlite.db.
-# Create the directory and copy it so the runtime user can create the file.
-COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next ./.next
+# The standalone build already contains the runtime server and traced deps.
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/public ./public
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules /app/node_modules
-COPY --from=builder --chown=nextjs:nodejs /app/apps/web/package.json ./package.json
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/src/lib/database ./src/lib/database
 
 USER nextjs
 
 EXPOSE 3000
 
-CMD ["node", "/app/node_modules/next/dist/bin/next", "start", "-p", "3000"]
+CMD ["node", "server.js"]
