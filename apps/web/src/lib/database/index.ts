@@ -11,5 +11,5 @@ export function getDb(): BetterSQLite3Database {
     _sqlite = new Database("src/lib/database/sqlite.db");
     _db = drizzle(_sqlite);
   }
-  return _db;
+  return _db!;
 }
